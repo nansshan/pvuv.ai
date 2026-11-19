@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-[INPUT]: 实例品牌设置、首页样式、点云画布与语言偏好。
+[INPUT]: theme.js、theme.css、实例品牌设置、首页样式、点云画布与语言偏好。
 [OUTPUT]: 公开流量演示与 GitHub 登录弹框。
 [POS]: 主域名首页。示例与私有统计数据隔离。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -11,6 +11,8 @@
 <title>SuperMiniMax · {{name}}</title><meta name="description" content="{{description}}">
 <link rel="stylesheet" href="/landing.css">
 <script defer src="/i18n.js"></script><script defer src="/landing.js"></script><script defer src="/signal.js"></script>
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="/theme.css">
 </head>
 <body>
 <header><a class="brand" href="/"><i class="mark" aria-hidden="true"></i>SuperMiniMax</a>

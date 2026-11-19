@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-[INPUT]: 控制台 API、i18n.js、sites-board.js 与 sites-board.css。
+[INPUT]: theme.js、theme.css、控制台 API、i18n.js、sites-board.js 与 sites-board.css。
 [OUTPUT]: 展示站点索引、流量排名与实例设置。
 [POS]: 登录后默认展示卡片。顶栏切换看板、排名与设置。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -44,6 +44,8 @@
   #ranking th { white-space: nowrap; }
 </style>
 <link rel="stylesheet" href="/sites-board.css">
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="/theme.css">
 </head>
 <body>
 <script src="/i18n.js"></script>
@@ -103,11 +105,11 @@
           <option value="strict" data-i18n="Strictest — clean + interacted">Strictest — clean + interacted</option>
         </select></label></div>
       <div><label><span data-i18n="AdSense client (optional)">AdSense client (optional)</span><input id="adclient" placeholder="ca-pub-1234567890123456"></label></div>
-      <div><label><span data-i18n="Timezone">Timezone</span> <span style="color:#e0a34a" data-i18n="(can't be changed later)">(can't be changed later)</span>
+      <div><label><span data-i18n="Timezone">Timezone</span> <span style="color:var(--warn)" data-i18n="(can't be changed later)">(can't be changed later)</span>
         <input id="tz" list="tzlist" autocomplete="off" placeholder="Search timezone…" data-i18n-ph="Search timezone…"></label></div>
       <div><label><span data-i18n="Engagement threshold (seconds)">Engagement threshold (seconds)</span>
         <input id="engaged" type="number" min="1" max="300" value="15" placeholder="15">
-        <span style="color:#8b93a1;font-size:12px">a visit is "engaged" (not a bounce) after this dwell time. GA4 default 10s; we default 15s.</span>
+        <span style="color:var(--muted);font-size:12px">a visit is "engaged" (not a bounce) after this dwell time. GA4 default 10s; we default 15s.</span>
       </label></div>
       <p class="err" id="err"></p>
       <button type="submit" data-i18n="Create site">Create site</button>
@@ -115,7 +117,7 @@
     <div class="snippet" id="snippet">
       <b data-i18n="Site created — embed this snippet:">Site created — embed this snippet:</b>
       <pre id="snippetCode"></pre>
-      <p style="color:#8b93a1;font-size:12px;margin:8px 0 0">
+      <p style="color:var(--muted);font-size:12px;margin:8px 0 0">
         data-api must point at your ingest host — adjust it if yours is not
         in.&lt;your-domain&gt;. See DEPLOY.md.
       </p>
@@ -125,7 +127,7 @@
 
   <section id="rankingSection" data-screen="ranking" hidden>
     <div class="head">
-      <span style="font-size:12px;color:#8b93a1" data-i18n="ranking-help">Ranked by external clean pageviews — bots &amp; crawlers excluded, mutual visits between your own sites don't count.</span>
+      <span style="font-size:12px;color:var(--muted)" data-i18n="ranking-help">Ranked by external clean pageviews — bots &amp; crawlers excluded, mutual visits between your own sites don't count.</span>
     </div>
     <div class="panel" id="ranking"><p class="loading" data-i18n="loading…">loading…</p></div>
   </section>
@@ -147,9 +149,9 @@
       <p class="err" id="hsMsg"></p>
       <button type="submit" data-i18n="Save">Save</button>
     </form>
-    <p style="margin:14px 0 0;font-size:12.5px;color:#8b93a1;border-top:1px solid #262b36;padding-top:12px">
+    <p style="margin:14px 0 0;font-size:12.5px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px">
       <span data-i18n="logo-help">Logos/favicon can be URLs or files you place in <code>workers/console/public/</code>.
-      The console header (dark) uses the light logo.</span> · <a href="/health.html" style="color:#7ab3ff;text-decoration:none" data-i18n="Run self-check ↗">Run self-check ↗</a>
+      The header selects the logo for the active background.</span> · <a href="/health.html" style="color:var(--link);text-decoration:none" data-i18n="Run self-check ↗">Run self-check ↗</a>
     </p>
     </details>
     <details class="settings-group"><summary data-i18n="Default timezone for new sites">Default timezone for new sites</summary>
@@ -162,16 +164,16 @@
     </details>
     <details class="settings-group"><summary data-i18n="AI analysis reports">AI analysis reports</summary>
     <form class="create" id="aiSettings">
-      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:#8b93a1" data-i18n="ai-help"> — used on each site's dashboard to generate a written summary.</span></div>
+      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:var(--muted)" data-i18n="ai-help"> — used on each site's dashboard to generate a written summary.</span></div>
       <div><label><span data-i18n="Provider (API format)">Provider (API format)</span>
         <select id="aiProvider">
           <option value="openai" data-i18n="OpenAI-compatible">OpenAI-compatible</option>
           <option value="anthropic">Anthropic (Claude)</option>
         </select></label></div>
       <div><label><span data-i18n="Model name">Model name</span><input id="aiModel" maxlength="120" placeholder="gpt-4o-mini / claude-opus-4-8"></label></div>
-      <div class="full"><label><span data-i18n="API base URL">API base URL</span> <span style="color:#8b93a1" data-i18n="(optional — blank uses the provider default)">(optional — blank uses the provider default)</span>
+      <div class="full"><label><span data-i18n="API base URL">API base URL</span> <span style="color:var(--muted)" data-i18n="(optional — blank uses the provider default)">(optional — blank uses the provider default)</span>
         <input id="aiBaseUrl" maxlength="300" placeholder="https://api.openai.com/v1 or https://api.anthropic.com"></label></div>
-      <div><label><span data-i18n="API key">API key</span> <span id="aiKeyState" style="color:#8b93a1"></span>
+      <div><label><span data-i18n="API key">API key</span> <span id="aiKeyState" style="color:var(--muted)"></span>
         <input id="aiKey" type="password" maxlength="300" autocomplete="off" placeholder="sk-…"></label></div>
       <div><label><span data-i18n="Report language">Report language</span>
         <select id="aiLang"><option value="en">English</option><option value="zh">中文</option></select></label></div>
@@ -181,45 +183,45 @@
     </details>
     <details class="settings-group"><summary data-i18n="API tokens">API tokens</summary>
     <form class="create" id="tokenSettings">
-      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:#8b93a1" data-i18n="token-help"> — read-only credentials for the CLI, the MCP server (so your own chatbot can query this data) and other integrations. Shown once at creation.</span></div>
+      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:var(--muted)" data-i18n="token-help"> — read-only credentials for the CLI, the MCP server (so your own chatbot can query this data) and other integrations. Shown once at creation.</span></div>
       <div><label><span data-i18n="Token name">Token name</span><input id="tokName" maxlength="60" placeholder="Claude Desktop"></label></div>
       <div><label><span data-i18n="Scope">Scope</span>
         <select id="tokSite"><option value="" data-i18n="All my sites">All my sites</option></select></label></div>
       <p class="err" id="tokMsg"></p>
-      <div class="full" id="tokNew" hidden style="background:#0c1117;border:1px solid #2b3a2e;border-radius:8px;padding:12px;margin-bottom:4px">
-        <div style="font-size:12px;color:#9ece9e;margin-bottom:6px" data-i18n="Copy it now — it cannot be shown again.">Copy it now — it cannot be shown again.</div>
-        <code id="tokValue" style="font-size:12.5px;word-break:break-all;color:#e6e8eb"></code>
+      <div class="full" id="tokNew" hidden style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:4px">
+        <div style="font-size:12px;color:var(--good-text);margin-bottom:6px" data-i18n="Copy it now — it cannot be shown again.">Copy it now — it cannot be shown again.</div>
+        <code id="tokValue" style="font-size:12.5px;word-break:break-all;color:var(--text)"></code>
       </div>
-      <div class="full" id="tokList" style="font-size:12px;color:#8b93a1"></div>
+      <div class="full" id="tokList" style="font-size:12px;color:var(--muted)"></div>
       <button type="submit" data-i18n="Create token">Create token</button>
     </form>
     </details>
     <details class="settings-group"><summary data-i18n="Crawler directory">Crawler directory</summary>
     <form class="create" id="botdirSettings">
-      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:#8b93a1" data-i18n="botdir-help"> — optional. Import a public bots-and-agents catalogue to label crawler traffic by kind (search / AI training / SEO / ads). Classification only: it never changes scoring, verdicts or ad protection.</span></div>
+      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:var(--muted)" data-i18n="botdir-help"> — optional. Import a public bots-and-agents catalogue to label crawler traffic by kind (search / AI training / SEO / ads). Classification only: it never changes scoring, verdicts or ad protection.</span></div>
       <div class="full"><label><span data-i18n="Directory JSON file">Directory JSON file</span>
         <input id="botdirFile" type="file" accept=".json,application/json"></label></div>
       <div class="full"><label><span data-i18n="…or paste the JSON">…or paste the JSON</span>
         <textarea id="botdirText" rows="4" style="font:12px/1.4 var(--mono)" placeholder='[{"name":"Googlebot","category":"Search"}, …]'></textarea></label></div>
       <p class="err" id="botdirMsg"></p>
-      <div class="full" id="botdirState" style="font-size:12px;color:#8b93a1"></div>
+      <div class="full" id="botdirState" style="font-size:12px;color:var(--muted)"></div>
       <div class="actions"><button type="submit" data-i18n="Import directory">Import directory</button>
       <button type="button" id="botdirClear" class="danger" data-i18n="Remove">Remove</button></div>
     </form>
     </details>
     <details class="settings-group"><summary data-i18n="Cloudflare edge requests">Cloudflare edge requests</summary>
     <form class="create" id="cfSettings">
-      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:#8b93a1" data-i18n="cf-help"> — optional, advanced. The tracking script only sees visitors whose browser ran JavaScript. AI crawlers and scrapers fetch your HTML and leave, so they never appear. Cloudflare saw all of them: add a read-only API token and the daily job pulls those request counts, so your dashboard can show what the script missed. Leave it empty and nothing changes.</span></div>
+      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:var(--muted)" data-i18n="cf-help"> — optional, advanced. The tracking script only sees visitors whose browser ran JavaScript. AI crawlers and scrapers fetch your HTML and leave, so they never appear. Cloudflare saw all of them: add a read-only API token and the daily job pulls those request counts, so your dashboard can show what the script missed. Leave it empty and nothing changes.</span></div>
       <div class="full helpbox" style="margin-bottom:4px">
         <span data-i18n="cf-steps">In the Cloudflare dashboard: <b>My Profile → API Tokens → Create Token → Create Custom Token</b>. Give it exactly these two permissions, both read-only:</span>
-        <div style="margin:6px 0 6px 0;font-family:ui-monospace,monospace;color:#c7cdd8">Zone · Zone · Read<br>Zone · Analytics · Read</div>
+        <div style="margin:6px 0 6px 0;font-family:ui-monospace,monospace;color:var(--text-2)">Zone · Zone · Read<br>Zone · Analytics · Read</div>
         <span data-i18n="cf-steps2">Under <i>Zone Resources</i> choose the zones your sites are on (or all zones in the account), then create the token and paste it below.</span>
-        <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" style="color:#7ab3ff;text-decoration:none;display:inline-block;margin-top:6px" data-i18n="Open Cloudflare API Tokens ↗">Open Cloudflare API Tokens ↗</a>
+        <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" style="color:var(--link);text-decoration:none;display:inline-block;margin-top:6px" data-i18n="Open Cloudflare API Tokens ↗">Open Cloudflare API Tokens ↗</a>
       </div>
-      <div class="full"><label><span data-i18n="Cloudflare API token">Cloudflare API token</span> <span id="cfKeyState" style="color:#8b93a1"></span>
+      <div class="full"><label><span data-i18n="Cloudflare API token">Cloudflare API token</span> <span id="cfKeyState" style="color:var(--muted)"></span>
         <input id="cfToken" type="password" maxlength="200" autocomplete="off" placeholder="••••••••••••••••"></label></div>
       <p class="err" id="cfMsg"></p>
-      <div class="full" id="cfState" style="font-size:12px;color:#8b93a1"></div>
+      <div class="full" id="cfState" style="font-size:12px;color:var(--muted)"></div>
       <div class="actions"><button type="submit" data-i18n="Save & check">Save &amp; check</button>
       <button type="button" id="cfTest" data-i18n="Re-check">Re-check</button>
       <button type="button" id="cfClear" class="danger" data-i18n="Remove">Remove</button></div>
@@ -227,7 +229,7 @@
     </details>
     <details class="settings-group"><summary data-i18n="Storage &amp; retention">Storage &amp; retention</summary>
     <form class="create" id="storageSettings" onsubmit="return false">
-      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:#8b93a1" data-i18n="storage-help"> — raw event rows are what fills the D1 database (roughly 0.8 KB each with indexes; a pageview produces several once behavior heartbeats are counted). Dashboards read from rollups that are kept forever; the windows below only decide how far back visitor journeys and the suspicious-visitor drill-down reach. Set them in <code>config.local.toml [retention]</code>, then redeploy the cron and console workers.</span></div>
+      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:var(--muted)" data-i18n="storage-help"> — raw event rows are what fills the D1 database (roughly 0.8 KB each with indexes; a pageview produces several once behavior heartbeats are counted). Dashboards read from rollups that are kept forever; the windows below only decide how far back visitor journeys and the suspicious-visitor drill-down reach. Set them in <code>config.local.toml [retention]</code>, then redeploy the cron and console workers.</span></div>
       <div class="full" id="storageState"><p class="loading" data-i18n="loading…">loading…</p></div>
       <div class="actions"><button type="button" id="storagePurge" data-i18n="Run purge now">Run purge now</button>
         <button type="button" id="storageRefresh" data-i18n="Refresh">Refresh</button></div>
@@ -369,13 +371,15 @@ document.getElementById('logout').addEventListener('click', async () => {
   location.href = '/login.html';
 });
 
-// apply configured branding to the header, favicon and title (console is dark,
-// so the header uses the LIGHT logo; the dark logo is for light backgrounds).
+// 按导航栏底色显示对应的品牌标志。
 function applyBranding(b) {
   const name = (b.name || '').trim() || 'pvuv.ai';
-  const logo = b.logo_light || b.logo_dark;
+  const light = b.logo_light || b.logo_dark;
+  const dark = b.logo_dark || light;
   const brand = document.getElementById('brand');
-  brand.innerHTML = logo ? `<img class="logo" src="${esc(logo)}" alt="${esc(name)}">` : esc(name);
+  brand.innerHTML = light
+    ? `<img class="logo on-dark" src="${esc(light)}" alt="${esc(name)}"><img class="logo on-light" src="${esc(dark)}" alt="${esc(name)}">`
+    : esc(name);
   document.title = name + ' — Sites';
   if (b.favicon) {
     let link = document.querySelector('link[rel="icon"]');
@@ -442,11 +446,11 @@ async function loadTokens() {
   box.innerHTML = '<table style="width:100%;border-collapse:collapse;margin-top:4px">'
     + live.map((x) => `<tr style="border-top:1px solid #1e2530">
         <td style="padding:5px 0">${esc(x.name)}</td>
-        <td style="color:#c7cdd8"><code>${esc(x.prefix)}…</code></td>
+        <td style="color:var(--text-2)"><code>${esc(x.prefix)}…</code></td>
         <td>${x.site_id ? esc(x.site_id) : te('all sites')}</td>
-        <td style="color:#8b93a1">${x.last_used_at ? te('used') + ' ' + esc(new Date(x.last_used_at).toISOString().slice(0, 10)) : te('never used')}</td>
+        <td style="color:var(--muted)">${x.last_used_at ? te('used') + ' ' + esc(new Date(x.last_used_at).toISOString().slice(0, 10)) : te('never used')}</td>
         <td style="text-align:right"><button type="button" data-revoke="${esc(x.token_id)}"
-          style="background:none;border:1px solid #5a2020;color:#f87171;border-radius:5px;padding:2px 8px;cursor:pointer;font-size:11px">${te('Revoke')}</button></td>
+          style="background:none;border:1px solid var(--bad-border);color:var(--bad);border-radius:5px;padding:2px 8px;cursor:pointer;font-size:11px">${te('Revoke')}</button></td>
       </tr>`).join('') + '</table>';
   box.querySelectorAll('[data-revoke]').forEach((b) => b.addEventListener('click', async () => {
     if (!confirm(t('Revoke this token? Anything using it stops working immediately.'))) return;
@@ -517,7 +521,7 @@ async function loadBotdir() {
     box.innerHTML = `<b>${esc(String(d.count))}</b> ${te('bots imported')}`
       + (d.skipped ? ` · ${esc(String(d.skipped))} ${te('skipped')}` : '')
       + ` · ${te('updated')} ${esc(new Date(d.updated_at).toISOString().slice(0, 16).replace('T', ' '))}<br>`
-      + cats.map(([c, n]) => `${esc(c)} <span style="color:#c7cdd8">${esc(String(n))}</span>`).join(' · ');
+      + cats.map(([c, n]) => `${esc(c)} <span style="color:var(--text-2)">${esc(String(n))}</span>`).join(' · ');
   } catch { box.textContent = ''; }
 }
 document.getElementById('botdirSettings').addEventListener('submit', async (e) => {
@@ -595,7 +599,7 @@ function renderCfState(d) {
   if (!s) { box.textContent = t('Saved. The first pull runs with tonight’s daily job.'); return; }
   const when = esc(new Date(s.checked_at).toISOString().slice(0, 16).replace('T', ' '));
   if (s.error) {
-    box.innerHTML = `<span style="color:#f0a0a0">${te('Last check failed')} · ${when}</span><br>`
+    box.innerHTML = `<span style="color:var(--bad-text)">${te('Last check failed')} · ${when}</span><br>`
       + `<span style="font-family:ui-monospace,monospace">${esc(s.error)}</span>`;
     return;
   }

@@ -1,0 +1,55 @@
+/* [INPUT]: 根节点主题、控制台语义色与首页版式。
+ * [OUTPUT]: 主题按钮、浅色控制台与深色首页。
+ * [POS]: 共享色板覆盖层，在页面样式之后加载。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md */
+.theme-control {
+  display:inline-grid; position:relative; place-items:center; flex:none;
+  width:34px; height:34px; border:1px solid var(--border-2,var(--rule));
+  border-radius:6px; color:inherit; font:22px/1 system-ui,sans-serif;
+}
+.theme-control select {
+  position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer;
+}
+.theme-control:focus-within {outline:2px solid currentColor;outline-offset:2px}
+:root[data-theme=dark] {
+  color-scheme:dark; --paper:#111a16; --ink:#e9efe8; --mute:#b0c0b4; --rule:#34443a;
+}
+[data-theme=dark] .ink {color:#142019}
+[data-theme=dark] .ink:hover {background:#c1d3c3}
+[data-theme=dark] .modes button[aria-pressed=true] {color:#16251a}
+:root[data-theme=light] {
+  color-scheme:light; --bg:#f7f8fa; --surface:#fff; --surface-2:#f1f3f6; --surface-3:#e4e9ef;
+  --border:#d9dfe5; --border-2:#b8c2cd; --border-3:#8493a1;
+  --text:#17202a; --text-2:#2d3945; --text-3:#40505f; --muted:#566572; --muted-2:#63717f;
+  --link:#1856a1; --good:#176640; --good-text:#145935; --good-bg:#e4f3ea;
+  --bad:#a72d37; --bad-text:#87262f; --bad-bg:#fff0ef; --bad-border:#ddb9ba;
+  --warn:#845712; --warn-text:#68480c; --warn-bg:#fff4d9; --warn-border:#ddc68f;
+  --info:#285986; --info-bg:#e8f1fb;
+}
+[data-theme=light] header:not(:has(.brand[href="/"])),
+[data-theme=light] .console-bar, [data-theme=light] .settings-group {background:var(--surface)}
+[data-theme=light] main.board {--ink:var(--text);--subtle:var(--muted);--mark:#73551e;--rule:var(--border)}
+[data-theme=light] .workspace-nav a {color:var(--muted)}
+[data-theme=light] .workspace-nav a[aria-current], [data-theme=light] .workspace-nav a:hover {
+  color:var(--text);background:var(--surface-2);border-color:#91713c;
+}
+[data-theme=light] .scard {background:color-mix(in srgb,var(--band) 8%,white)}
+[data-theme=light] .scard:is(:hover,:focus-within) {background:color-mix(in srgb,var(--band) 14%,white)}
+[data-theme=light] .scard[data-volume="High traffic"] {--pv-color:var(--good)}
+[data-theme=light] .scard[data-volume="Low traffic"] {--pv-color:#435e83}
+[data-theme=light] .scard[data-volume="No traffic"] {--pv-color:var(--muted)}
+[data-theme=light] .spike {color:#92430c}
+[data-theme=light] .trend-toggle[aria-pressed=true] {color:white}
+[data-theme=light] #ranking th, [data-theme=light] #ranking tbody tr:hover {background:var(--surface-2);color:var(--text-2)}
+[data-theme=light] :is(code,.secnav,.helpbox,.snippet,.hbar,.fbar-wrap,.chip,.onboard pre) {background:var(--surface-2);border-color:var(--border)}
+[data-theme=light] :is(.snippet pre,.onboard pre) {color:var(--good)}
+[data-theme=light] :is(.notice.info,.anomaly,.onboard,.tl li.hit,.ev-form .ev-tag,.ev-out .ev-tag) {background:var(--info-bg);color:var(--info);border-color:var(--border)}
+[data-theme=light] :is(.notice.good,.summary.good,.ev-custom .ev-tag) {background:var(--good-bg);border-color:var(--border)}
+[data-theme=light] :is(.summary.bad,.fchip.bad,.tag.bad,.b-bot,.btn.danger:hover) {background:var(--bad-bg)}
+[data-theme=light] :is(.fchip.warn,.tag.warn,.b-suspect) {background:var(--warn-bg)}
+[data-theme=light] :is(.chip .x,.fstep .fx) {background:var(--surface-3);color:var(--text)}
+[data-theme=light] :is(.session-head,.row,td) {border-color:var(--border)}
+[data-theme=light] :is(.ai-md h3,.ai-md strong,form.create .section-title strong) {color:var(--text)}
+@media(max-width:420px){header:has(.brand[href="/"]) {flex-wrap:wrap;gap:4px}}
+
+[data-theme=light] .brand img.on-dark, [data-theme=dark] .brand img.on-light {display:none}
