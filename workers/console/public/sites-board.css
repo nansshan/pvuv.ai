@@ -1,0 +1,71 @@
+/*
+ * [INPUT]: sites.html 的页面结构与 sites-board.js 的卡片、序列和排名。
+ * [OUTPUT]: 六列站点目录、数字与折线视图、可滚动排名。
+ * [POS]: 样式仅作用于站点总览，表单沿用 console.css。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+main.board {
+  --ink: #f1efe8;
+  --subtle: #a4aaa7;
+  --mark: #d9bc87;
+  --rule: #343b39;
+  max-width: 2000px;
+  margin: 0 auto;
+  padding: clamp(24px, 3vw, 54px) clamp(16px, 2.8vw, 54px) 64px;
+}
+.board h1, #rankingSection h2 { color: var(--ink); letter-spacing: -.045em; line-height: 1.15; }
+.board h1 { font-size: clamp(26px, 2.7vw, 44px); margin: 0; }
+.board h1 small { color: var(--mark); font: 500 15px var(--mono); vertical-align: top; letter-spacing: 0; }
+.board .toolbar { flex-wrap: wrap; }
+.scards { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 10px; margin-top: 22px; }
+.scard { min-width: 0; padding: 16px 14px 10px; border: 1px solid var(--rule); background: #191e20; border-radius: 8px; color: var(--ink); }
+.scard:hover, .scard:focus-within { border-color: #797566; }
+.site-name, .domain a, #ranking td small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.site-name { font-weight: 650; color: var(--ink); font-size: 15px; }
+.domain { min-height: 18px; font-size: 12px; margin-top: 2px; }
+.domain a { color: var(--mark); width: fit-content; max-width: 100%; }
+.card-controls, .scard footer, .axis, .external div { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.card-controls { margin: 16px 0 4px; }
+.quality, .axis, .scard footer, .metrics small { font-size: 11px; color: var(--subtle); }
+.trend-toggle, .chart select { min-height: 24px; font: inherit; font-size: 11px; color: var(--mark); }
+.trend-toggle { padding: 1px 7px; border: 1px solid #4e5047; background: transparent; border-radius: 4px; cursor: pointer; }
+.trend-toggle[aria-pressed=true] { background: var(--mark); color: #24251f; }
+.metrics, .chart { height: 72px; }
+.metrics { display: grid; align-items: center; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; }
+.metrics strong, .metrics small { display: block; }
+.metrics strong { font-size: clamp(17px,1.3vw,25px); font-variant-numeric: tabular-nums; line-height: 1.15; letter-spacing: -.045em; overflow-wrap: anywhere; }
+.metrics small { margin-top: 4px; }
+.scard [hidden] { display: none; }
+.chart select { height: 22px; min-height: 0; padding: 0 20px 0 0; border: 0; background-color: transparent; }
+.plot svg { display: block; width: 100%; height: 32px; overflow: visible; }
+.plot polyline, .plot .guides { fill: none; stroke: var(--mark); stroke-width: 1.7; vector-effect: non-scaling-stroke; }
+.plot .guides { stroke: var(--rule); stroke-width: 1; }
+.plot circle { fill: transparent; }
+.plot circle:hover { fill: var(--mark); }
+.axis { font-variant-numeric: tabular-nums; }
+.axis b { color: var(--mark); }
+.scard footer { padding-top: 8px; border-top: 1px solid var(--rule); font-size: 10px; }
+.scard footer span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+#rankingSection { padding-top: 14px; }
+#rankingSection h2 { font-size: clamp(21px,1.8vw,31px); }
+#rankingSection .head { align-items: baseline; margin-bottom: 14px; }
+#ranking.panel { overflow: auto; max-height: 74vh; padding: 0; border-color: var(--rule); border-radius: 8px; }
+#ranking table { min-width: 740px; border-collapse: separate; border-spacing: 0; }
+#ranking th { position: sticky; top: 0; background: #242b2b; z-index: 1; color: #c4cbc6; }
+#ranking td, #ranking th { padding: 9px clamp(8px,1vw,18px); font-variant-numeric: tabular-nums; }
+#ranking tbody tr:hover { background: #232a2b; }
+#ranking .rank { color: var(--subtle); width: 3.5em; font-family: var(--mono); }
+#ranking tr:first-child .rank, #ranking .external b { color: var(--mark); }
+#ranking td a { color: var(--ink); font-weight: 600; }
+#ranking td small { color: var(--subtle); font-size: 11px; }
+#ranking .external { width: 20%; }
+.external div { justify-content: flex-end; }
+.external b { min-width: 4ch; }
+.external meter { width: 60%; height: 5px; border: 0; border-radius: 0; background: var(--rule); }
+.external meter::-webkit-meter-bar { background: var(--rule); border: 0; height: 5px; }
+.external meter::-webkit-meter-optimum-value { background: var(--mark); }
+.external meter::-moz-meter-bar { background: var(--mark); }
+@media (max-width: 1199px) { .scards { grid-template-columns: repeat(4,minmax(0,1fr)); } }
+@media (max-width: 899px) { .scards { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (max-width: 679px) { .scards { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 419px) { .scards { grid-template-columns: minmax(0,1fr); } }

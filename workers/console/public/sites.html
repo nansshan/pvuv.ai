@@ -1,4 +1,10 @@
 <!doctype html>
+<!--
+[INPUT]: 控制台 API、i18n.js、sites-board.js 与 sites-board.css。
+[OUTPUT]: 展示站点索引、流量排名与实例设置。
+[POS]: 控制台站点总览入口。卡片与排名由看板脚本绘制。
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -10,16 +16,6 @@
   .head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   .head h2 { margin: 0; }
   .toolbar { display: flex; align-items: center; gap: 8px; }
-  .scards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 14px; }
-  .scard { display: block; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; color: inherit; transition: border-color .12s, background .12s, transform .12s; }
-  .scard:hover { border-color: var(--border-3); background: #191d26; text-decoration: none; transform: translateY(-1px); }
-  .scard .name { font-weight: 700; font-size: 15px; }
-  .scard .dom { color: var(--muted); font-size: 12px; margin-top: 2px; word-break: break-all; }
-  .scard .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
-  .scard .stat .v { font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .scard .stat .k { color: var(--muted); font-size: 11px; }
-  .scard .foot { margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .scard .foot .spacer { flex: 1; }
   .panel.form { margin-top: 16px; border-radius: var(--radius-lg); padding: 18px; }
   .panel .phead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   .panel .phead h3 { margin: 0; font-size: 14px; }
@@ -47,6 +43,7 @@
   @media (max-width: 560px) { form.create { grid-template-columns: 1fr; } form.create button[type="submit"], form.create .actions, form.create .section-title, form.create .subform, .err, .full { grid-column: span 1; } }
   #ranking th { white-space: nowrap; }
 </style>
+<link rel="stylesheet" href="/sites-board.css">
 </head>
 <body>
 <script src="/i18n.js"></script>
@@ -58,9 +55,9 @@
     <button id="logout" class="btn" data-i18n="Sign out">Sign out</button>
   </div>
 </header>
-<main>
+<main class="board">
   <div class="head">
-    <h2 data-i18n="Your sites">Your sites</h2>
+    <h1><span data-i18n="Your sites">Your sites</span> <small id="siteCount"></small></h1>
     <div class="toolbar">
       <select id="period" aria-label="Date range">
         <optgroup label="Rolling" data-i18n-label="Rolling">
@@ -222,6 +219,7 @@
     </form>
   </section>
 </main>
+<script src="/sites-board.js"></script>
 <script>
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const t = (s) => window.PVI18N.t(s);
@@ -247,90 +245,12 @@ document.querySelectorAll('.panel .close').forEach((b) =>
 const fmt = (n) => n == null ? '–' : Number(n).toLocaleString('en-US');
 const dur = (ms) => ms == null ? '–' : ms >= 60000 ? Math.floor(ms/60000)+'m '+Math.round(ms%60000/1000)+'s' : Math.round((ms||0)/1000)+'s';
 
-async function loadSites() {
-  const period = document.getElementById('period').value;
-  const r = await guard(await fetch('/api/sites'));
-  const { sites } = await r.json();
-  const el = document.getElementById('sites');
-  if (!sites.length) {
-    el.innerHTML = `<p class="empty">${te('No sites yet — use the “＋ New site” button to add one.')}<br>`
-      + `${te('Just deployed?')} <a href="/health.html" style="color:#7ab3ff;text-decoration:none">${te('Run the self-check ↗')}</a></p>`;
-    return;
-  }
-  // one card per site, each showing its own overview so all sites' numbers
-  // are visible at a glance on this page; click a card for the full dashboard
-  el.innerHTML = '<div class="scards">' + sites.map((s) => `
-    <a class="scard" href="/site.html?id=${esc(s.site_id)}" data-id="${esc(s.site_id)}">
-      <div class="name">${esc(s.name)}</div>
-      <div class="dom">${esc(JSON.parse(s.allowed_domains).join(', '))}</div>
-      <div class="stats" id="st-${esc(s.site_id)}">
-        <div class="stat"><div class="v">…</div><div class="k">${te('Pageviews')}</div></div>
-        <div class="stat"><div class="v">…</div><div class="k">${te('Visitors')}</div></div>
-        <div class="stat"><div class="v">…</div><div class="k">${te('Sessions')}</div></div>
-      </div>
-      <div class="foot"><span class="tag" title="${te('Timezone')}">🕒 ${esc(s.timezone || 'UTC')}</span><span class="tag" title="${te('Ad protection mode')}">🛡 ${te(s.adguard_mode || 'off')}</span><span class="spacer"></span><span class="tag good" id="hs-${esc(s.site_id)}"></span></div>
-    </a>`).join('') + '</div>';
-
-  // ONE request for every card. This used to be one /overview per site, and
-  // /overview is a live raw scan of the whole period — a dozen sites meant a
-  // dozen concurrent whole-period scans, so the grid sat on "…" for a long time
-  // whenever one site was busy. /api/sites/summary reads completed days from
-  // the rollups and aggregates all sites in a single pass.
-  try {
-    const d = await (await fetch(`/api/sites/summary?period=${period}`)).json();
-    for (const o of d.sites || []) {
-      const st = document.getElementById('st-' + o.site_id);
-      const hs = document.getElementById('hs-' + o.site_id);
-      if (!st || !hs) continue;
-      const human = o.pv ? (((o.clean_count + o.suspect_count) / o.pv) * 100).toFixed(0) : 0;
-      st.innerHTML = `
-        <div class="stat"><div class="v">${fmt(o.pv)}</div><div class="k">${te('Pageviews')}</div></div>
-        <div class="stat"${d.uv_approx ? ` title="${te('uv-approx')}"` : ''}><div class="v">${d.uv_approx ? '≈' : ''}${fmt(o.uv)}</div><div class="k">${te('Visitors')}</div></div>
-        <div class="stat"><div class="v">${fmt(o.sessions)}</div><div class="k">${te('Sessions')}</div></div>`;
-      hs.textContent = o.pv ? human + '% ' + t('human') : t('no data yet');
-      hs.className = 'tag ' + (o.pv ? (human >= 90 ? 'good' : human >= 70 ? 'warn' : 'bad') : '');
-    }
-  } catch {
-    document.querySelectorAll('[id^="hs-"]').forEach((el) => { el.textContent = ''; });
-  }
-}
 // remember the sites-overview period across refreshes (default: last 24h)
 (() => {
   const sel = document.getElementById('period');
   const saved = localStorage.getItem('pvuv.sitesPeriod');
   if (saved && [...sel.options].some((o) => o.value === saved)) sel.value = saved;
 })();
-// cross-site clean-traffic ranking (§14): self-hides with <2 sites (nothing to
-// rank). "External clean" excludes bots/crawlers and mutual visits between your
-// own sites, so it reflects genuinely external human traffic.
-async function loadRanking() {
-  const sec = document.getElementById('rankingSection');
-  const period = document.getElementById('period').value;
-  let sites = [];
-  try { sites = ((await (await guard(await fetch(`/api/ranking?period=${period}`))).json()).sites) || []; }
-  catch { sec.hidden = true; return; }
-  if (sites.length < 2) { sec.hidden = true; return; }
-  sec.hidden = false;
-  // external/internal come from rollup_source_daily, which the hourly job
-  // fills; right after deploying (or on a brand-new hour) it is empty while
-  // clean_pv already has live numbers — show a dash instead of a misleading 0
-  const pending = sites.every((s) => !s.external_pv && !s.internal_pv) && sites.some((s) => s.clean_pv > 0);
-  const dash = `<span class="muted" title="${te('populated by the hourly rollup — check back after :05')}">—</span>`;
-  const body = sites.map((s, i) => `<tr>
-    <td style="color:#8b93a1">${i + 1}</td>
-    <td><a href="/site.html?id=${esc(s.site_id)}">${esc(s.name)}</a></td>
-    <td class="num"><b>${pending ? dash : fmt(s.external_pv)}</b></td>
-    <td class="num" style="color:#8b93a1">${pending ? dash : fmt(s.internal_pv)}</td>
-    <td class="num">${fmt(s.clean_pv)}</td>
-    <td class="num" style="color:#8b93a1">${fmt(s.pv)}</td>
-    <td class="num">${s.quality_score}%</td>
-  </tr>`).join('');
-  document.getElementById('ranking').innerHTML = `<table>
-    <thead><tr>
-      <th>#</th><th>${te('Site')}</th><th class="num">${te('External clean')}</th><th class="num">${te('Internal (mutual)')}</th>
-      <th class="num">${te('Clean PV')}</th><th class="num">${te('Total PV')}</th><th class="num">${te('Human')}</th>
-    </tr></thead><tbody>${body}</tbody></table>`;
-}
 document.getElementById('period').addEventListener('change', () => {
   localStorage.setItem('pvuv.sitesPeriod', document.getElementById('period').value);
   loadSites();
