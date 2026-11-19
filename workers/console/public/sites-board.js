@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 同源站点、汇总、排名与小时序列接口。页面提供翻译与转义函数。
  * [OUTPUT]: loadSites 和 loadRanking 渲染当前时间范围的数据。
- * [POS]: 站点目录负责排序。单卡按需读取最近 24 小时序列。
+ * [POS]: 看板读取单站小时序列。排名视图按需读取跨站数据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const boardMetrics = { pv: 'Pageviews', uv: 'Visitors', sessions: 'Sessions' };
@@ -134,13 +134,15 @@ boardRoot.addEventListener('change', event => {
 
 async function loadRanking() {
   const version = ++rankVersion;
-  const section = document.getElementById('rankingSection');
+  const table = document.getElementById('ranking');
   const period = document.getElementById('period').value;
   try {
     const { sites } = await boardData('/api/ranking?period=' + encodeURIComponent(period));
     if (version !== rankVersion) return;
-    section.hidden = sites.length < 2;
-    if (section.hidden) return;
+    if (!sites.length) {
+      table.textContent = t('no data yet');
+      return;
+    }
     const pending = sites.every(s => !s.external_pv && !s.internal_pv) && sites.some(s => s.clean_pv > 0);
     const max = Math.max(1, ...sites.map(s => s.external_pv));
     const dash = `<span title="${te('populated by the hourly rollup — check back after :05')}">—</span>`;
@@ -151,5 +153,5 @@ async function loadRanking() {
       <td class="num">${fmt(s.pv)}</td><td class="num">${fmt(s.quality_score)}%</td></tr>`).join('');
     document.getElementById('ranking').innerHTML = `<table><thead><tr><th>#</th><th>${te('Site')}</th>${['External clean','Internal (mutual)','Clean PV','Total PV','Human'].map(key => `<th class="num">${te(key)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>`;
     renderDomains();
-  } catch { if (version === rankVersion) section.hidden = true; }
+  } catch { if (version === rankVersion) table.textContent = t('Could not reach the server.'); }
 }

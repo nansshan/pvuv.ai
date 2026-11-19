@@ -2,7 +2,7 @@
 <!--
 [INPUT]: 控制台 API、i18n.js、sites-board.js 与 sites-board.css。
 [OUTPUT]: 展示站点索引、流量排名与实例设置。
-[POS]: 控制台站点总览入口。卡片与排名由看板脚本绘制。
+[POS]: 登录后默认展示卡片。顶栏切换看板、排名与设置。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 <html lang="en">
@@ -47,8 +47,13 @@
 </head>
 <body>
 <script src="/i18n.js"></script>
-<header>
+<header class="console-bar">
   <span class="brand" id="brand">pvuv.ai</span>
+  <nav class="workspace-nav">
+    <a href="#/board" data-view="board" aria-current="page" data-i18n="Board">Board</a>
+    <a href="#/ranking" data-view="ranking" data-i18n="Traffic ranking">Traffic ranking</a>
+    <a href="#/settings" data-view="settings" data-i18n="Workspace settings">Workspace settings</a>
+  </nav>
   <div class="hdr-right">
     <select id="lang" aria-label="Language"></select>
     <a href="/health.html" id="selfcheckLink" class="btn" data-i18n="Self-check">Self-check</a>
@@ -57,7 +62,11 @@
 </header>
 <main class="board">
   <div class="head">
-    <h1><span data-i18n="Your sites">Your sites</span> <small id="siteCount"></small></h1>
+    <h1>
+      <span data-screen="board"><span data-i18n="Your sites">Your sites</span> <small id="siteCount"></small></span>
+      <span data-screen="ranking" hidden data-i18n="Site ranking · clean traffic">Site ranking · clean traffic</span>
+      <span data-screen="settings" hidden data-i18n="Workspace settings">Workspace settings</span>
+    </h1>
     <div class="toolbar">
       <select id="period" aria-label="Date range">
         <optgroup label="Rolling" data-i18n-label="Rolling">
@@ -76,22 +85,9 @@
           <option value="this_year" data-i18n="This year">This year</option>
         </optgroup>
       </select>
-      <button class="btn primary" id="btnAdd">＋ <span data-i18n="New site">New site</span></button>
-      <button class="btn icon" id="btnSettings" title="Settings" data-i18n-title="Settings" aria-label="Settings">⚙</button>
+      <button class="btn primary" id="btnAdd" data-screen="board" aria-controls="addPanel" aria-expanded="false">＋ <span data-i18n="New site">New site</span></button>
     </div>
   </div>
-  <div id="sites"><p class="loading" data-i18n="loading…">loading…</p></div>
-
-  <section id="rankingSection" hidden style="margin-top:24px">
-    <div class="head">
-      <h2 data-i18n="Site ranking · clean traffic">Site ranking · clean traffic</h2>
-      <span style="font-size:12px;color:#8b93a1" data-i18n="ranking-help">Ranked by external clean pageviews — bots &amp; crawlers excluded, mutual visits between your own sites don't count.</span>
-    </div>
-    <div class="panel" id="ranking"><p class="loading" data-i18n="loading…">loading…</p></div>
-  </section>
-
-  <datalist id="tzlist"></datalist>
-
   <section class="panel form" id="addPanel" hidden>
     <div class="phead"><h3 data-i18n="Add a site">Add a site</h3><button class="close" data-close="addPanel" aria-label="Close">×</button></div>
     <form class="create" id="create">
@@ -125,9 +121,22 @@
       </p>
     </div>
   </section>
+  <div data-screen="board" id="sites"><p class="loading" data-i18n="loading…">loading…</p></div>
 
-  <section class="panel form" id="homePanel" hidden>
-    <div class="phead"><h3 data-i18n="Site & branding">Site &amp; branding</h3><button class="close" data-close="homePanel" aria-label="Close">×</button></div>
+  <section id="rankingSection" data-screen="ranking" hidden>
+    <div class="head">
+      <span style="font-size:12px;color:#8b93a1" data-i18n="ranking-help">Ranked by external clean pageviews — bots &amp; crawlers excluded, mutual visits between your own sites don't count.</span>
+    </div>
+    <div class="panel" id="ranking"><p class="loading" data-i18n="loading…">loading…</p></div>
+  </section>
+
+  <datalist id="tzlist"></datalist>
+
+
+
+  <section id="homePanel" data-screen="settings" hidden>
+
+    <details class="settings-group" open><summary data-i18n="Site &amp; branding">Site &amp; branding</summary>
     <form class="create" id="homeSettings">
       <div><label><span data-i18n="Brand name (header + homepage)">Brand name (header + homepage)</span><input id="hsName" maxlength="100" placeholder="PVUV.ai"></label></div>
       <div><label><span data-i18n="Primary domain">Primary domain</span><input id="hsDomain" maxlength="120" placeholder="www.example.com"></label></div>
@@ -142,15 +151,18 @@
       <span data-i18n="logo-help">Logos/favicon can be URLs or files you place in <code>workers/console/public/</code>.
       The console header (dark) uses the light logo.</span> · <a href="/health.html" style="color:#7ab3ff;text-decoration:none" data-i18n="Run self-check ↗">Run self-check ↗</a>
     </p>
-    <form class="create" id="tzSettings" style="margin-top:16px;border-top:1px solid #262b36;padding-top:16px">
+    </details>
+    <details class="settings-group"><summary data-i18n="Default timezone for new sites">Default timezone for new sites</summary>
+    <form class="create" id="tzSettings">
       <div class="full"><label><span data-i18n="Default timezone for new sites">Default timezone for new sites</span>
         <input id="tzDefault" list="tzlist" autocomplete="off" placeholder="Search timezone…" data-i18n-ph="Search timezone…"></label></div>
       <p class="err" id="tzMsg"></p>
       <button type="submit" data-i18n="Save default timezone">Save default timezone</button>
     </form>
-    <form class="create" id="aiSettings" style="margin-top:16px;border-top:1px solid #262b36;padding-top:16px">
-      <div class="full" style="margin-bottom:4px"><strong style="font-size:13px;color:#c7cdd8" data-i18n="AI analysis reports">AI analysis reports</strong>
-        <span style="font-size:12px;color:#8b93a1" data-i18n="ai-help"> — used on each site's dashboard to generate a written summary.</span></div>
+    </details>
+    <details class="settings-group"><summary data-i18n="AI analysis reports">AI analysis reports</summary>
+    <form class="create" id="aiSettings">
+      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:#8b93a1" data-i18n="ai-help"> — used on each site's dashboard to generate a written summary.</span></div>
       <div><label><span data-i18n="Provider (API format)">Provider (API format)</span>
         <select id="aiProvider">
           <option value="openai" data-i18n="OpenAI-compatible">OpenAI-compatible</option>
@@ -166,9 +178,10 @@
       <p class="err" id="aiMsg"></p>
       <button type="submit" data-i18n="Save AI settings">Save AI settings</button>
     </form>
-    <form class="create" id="tokenSettings" style="margin-top:16px;border-top:1px solid #262b36;padding-top:16px">
-      <div class="full" style="margin-bottom:4px"><strong style="font-size:13px;color:#c7cdd8" data-i18n="API tokens">API tokens</strong>
-        <span style="font-size:12px;color:#8b93a1" data-i18n="token-help"> — read-only credentials for the CLI, the MCP server (so your own chatbot can query this data) and other integrations. Shown once at creation.</span></div>
+    </details>
+    <details class="settings-group"><summary data-i18n="API tokens">API tokens</summary>
+    <form class="create" id="tokenSettings">
+      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:#8b93a1" data-i18n="token-help"> — read-only credentials for the CLI, the MCP server (so your own chatbot can query this data) and other integrations. Shown once at creation.</span></div>
       <div><label><span data-i18n="Token name">Token name</span><input id="tokName" maxlength="60" placeholder="Claude Desktop"></label></div>
       <div><label><span data-i18n="Scope">Scope</span>
         <select id="tokSite"><option value="" data-i18n="All my sites">All my sites</option></select></label></div>
@@ -180,9 +193,10 @@
       <div class="full" id="tokList" style="font-size:12px;color:#8b93a1"></div>
       <button type="submit" data-i18n="Create token">Create token</button>
     </form>
-    <form class="create" id="botdirSettings" style="margin-top:16px;border-top:1px solid #262b36;padding-top:16px">
-      <div class="full" style="margin-bottom:4px"><strong style="font-size:13px;color:#c7cdd8" data-i18n="Crawler directory">Crawler directory</strong>
-        <span style="font-size:12px;color:#8b93a1" data-i18n="botdir-help"> — optional. Import a public bots-and-agents catalogue to label crawler traffic by kind (search / AI training / SEO / ads). Classification only: it never changes scoring, verdicts or ad protection.</span></div>
+    </details>
+    <details class="settings-group"><summary data-i18n="Crawler directory">Crawler directory</summary>
+    <form class="create" id="botdirSettings">
+      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:#8b93a1" data-i18n="botdir-help"> — optional. Import a public bots-and-agents catalogue to label crawler traffic by kind (search / AI training / SEO / ads). Classification only: it never changes scoring, verdicts or ad protection.</span></div>
       <div class="full"><label><span data-i18n="Directory JSON file">Directory JSON file</span>
         <input id="botdirFile" type="file" accept=".json,application/json"></label></div>
       <div class="full"><label><span data-i18n="…or paste the JSON">…or paste the JSON</span>
@@ -192,9 +206,10 @@
       <div class="actions"><button type="submit" data-i18n="Import directory">Import directory</button>
       <button type="button" id="botdirClear" class="danger" data-i18n="Remove">Remove</button></div>
     </form>
-    <form class="create" id="cfSettings" style="margin-top:16px;border-top:1px solid #262b36;padding-top:16px">
-      <div class="full" style="margin-bottom:4px"><strong style="font-size:13px;color:#c7cdd8" data-i18n="Cloudflare edge requests">Cloudflare edge requests</strong>
-        <span style="font-size:12px;color:#8b93a1" data-i18n="cf-help"> — optional, advanced. The tracking script only sees visitors whose browser ran JavaScript. AI crawlers and scrapers fetch your HTML and leave, so they never appear. Cloudflare saw all of them: add a read-only API token and the daily job pulls those request counts, so your dashboard can show what the script missed. Leave it empty and nothing changes.</span></div>
+    </details>
+    <details class="settings-group"><summary data-i18n="Cloudflare edge requests">Cloudflare edge requests</summary>
+    <form class="create" id="cfSettings">
+      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:#8b93a1" data-i18n="cf-help"> — optional, advanced. The tracking script only sees visitors whose browser ran JavaScript. AI crawlers and scrapers fetch your HTML and leave, so they never appear. Cloudflare saw all of them: add a read-only API token and the daily job pulls those request counts, so your dashboard can show what the script missed. Leave it empty and nothing changes.</span></div>
       <div class="full helpbox" style="margin-bottom:4px">
         <span data-i18n="cf-steps">In the Cloudflare dashboard: <b>My Profile → API Tokens → Create Token → Create Custom Token</b>. Give it exactly these two permissions, both read-only:</span>
         <div style="margin:6px 0 6px 0;font-family:ui-monospace,monospace;color:#c7cdd8">Zone · Zone · Read<br>Zone · Analytics · Read</div>
@@ -209,15 +224,17 @@
       <button type="button" id="cfTest" data-i18n="Re-check">Re-check</button>
       <button type="button" id="cfClear" class="danger" data-i18n="Remove">Remove</button></div>
     </form>
-    <form class="create" id="storageSettings" style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px" onsubmit="return false">
-      <div class="full" style="margin-bottom:4px"><strong style="font-size:13px;color:#c7cdd8" data-i18n="Storage & retention">Storage &amp; retention</strong>
-        <span style="font-size:12px;color:#8b93a1" data-i18n="storage-help"> — raw event rows are what fills the D1 database (roughly 0.8 KB each with indexes; a pageview produces several once behavior heartbeats are counted). Dashboards read from rollups that are kept forever; the windows below only decide how far back visitor journeys and the suspicious-visitor drill-down reach. Set them in <code>config.local.toml [retention]</code>, then redeploy the cron and console workers.</span></div>
+    </details>
+    <details class="settings-group"><summary data-i18n="Storage &amp; retention">Storage &amp; retention</summary>
+    <form class="create" id="storageSettings" onsubmit="return false">
+      <div class="full" style="margin-bottom:4px"><span style="font-size:12px;color:#8b93a1" data-i18n="storage-help"> — raw event rows are what fills the D1 database (roughly 0.8 KB each with indexes; a pageview produces several once behavior heartbeats are counted). Dashboards read from rollups that are kept forever; the windows below only decide how far back visitor journeys and the suspicious-visitor drill-down reach. Set them in <code>config.local.toml [retention]</code>, then redeploy the cron and console workers.</span></div>
       <div class="full" id="storageState"><p class="loading" data-i18n="loading…">loading…</p></div>
       <div class="actions"><button type="button" id="storagePurge" data-i18n="Run purge now">Run purge now</button>
         <button type="button" id="storageRefresh" data-i18n="Refresh">Refresh</button></div>
       <p class="err" id="storageMsg"></p>
     </form>
-  </section>
+      </details>
+</section>
 </main>
 <script src="/sites-board.js"></script>
 <script>
@@ -227,20 +244,43 @@ let ingestHostCfg = ''; // from /api/me — see the snippet builder below
 const te = (s) => esc(t(s));
 async function guard(r) { if (r.status === 401) { location.href = '/login.html'; throw new Error('auth'); } return r; }
 
-// collapsible panels: only one open at a time; toolbar buttons toggle them
-function togglePanel(id) {
-  for (const p of ['addPanel', 'homePanel']) {
-    const el = document.getElementById(p);
-    if (p === id) el.hidden = !el.hidden;
-    else el.hidden = true;
+let settingsLoaded = false;
+function selectView() {
+  const navLinks = [...document.querySelectorAll('.workspace-nav a')];
+  const active = navLinks.find(link => link.hash === location.hash) || navLinks[0];
+  for (const link of navLinks) {
+    if (link === active) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
   }
-  const opened = document.getElementById(id);
-  if (!opened.hidden) opened.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const view = active.dataset.view;
+  document.querySelectorAll('[data-screen]').forEach(el => { el.hidden = el.dataset.screen !== view; });
+  document.querySelector('.toolbar').hidden = view === 'settings';
+  setAddPanel(false);
+  if (view === 'ranking') loadRanking();
+  if (view === 'settings' && !settingsLoaded) {
+    settingsLoaded = true;
+    loadTokens();
+    loadStorage();
+    loadAiSettings();
+    loadCfSettings();
+    loadBotdir();
+  }
+  window.scrollTo(0, 0);
 }
-document.getElementById('btnAdd').addEventListener('click', () => togglePanel('addPanel'));
-document.getElementById('btnSettings').addEventListener('click', () => { togglePanel('homePanel'); loadTokens(); loadStorage(); });
-document.querySelectorAll('.panel .close').forEach((b) =>
-  b.addEventListener('click', () => { document.getElementById(b.dataset.close).hidden = true; }));
+function setAddPanel(open) {
+  document.getElementById('addPanel').hidden = !open;
+  document.getElementById('btnAdd').setAttribute('aria-expanded', String(open));
+}
+window.addEventListener('hashchange', selectView);
+document.getElementById('btnAdd').addEventListener('click', () => {
+  const open = document.getElementById('addPanel').hidden;
+  setAddPanel(open);
+  if (open) document.getElementById('name').focus();
+});
+document.querySelector('[data-close="addPanel"]').addEventListener('click', () => {
+  setAddPanel(false);
+  document.getElementById('btnAdd').focus();
+});
 
 const fmt = (n) => n == null ? '–' : Number(n).toLocaleString('en-US');
 const dur = (ms) => ms == null ? '–' : ms >= 60000 ? Math.floor(ms/60000)+'m '+Math.round(ms%60000/1000)+'s' : Math.round((ms||0)/1000)+'s';
@@ -254,7 +294,7 @@ const dur = (ms) => ms == null ? '–' : ms >= 60000 ? Math.floor(ms/60000)+'m '
 document.getElementById('period').addEventListener('change', () => {
   localStorage.setItem('pvuv.sitesPeriod', document.getElementById('period').value);
   loadSites();
-  loadRanking();
+  if (!document.getElementById('rankingSection').hidden) loadRanking();
 });
 
 // --- timezones -------------------------------------------------------------
@@ -609,17 +649,14 @@ window.PVI18N.applyStatic();
 document.addEventListener('pvuv:lang', () => {
   window.PVI18N.applyStatic();
   loadSites();
-  loadRanking();
-  loadAiSettings(); // refreshes the key-state hint text
-  loadCfSettings();
+  if (!document.getElementById('rankingSection').hidden) loadRanking();
+  if (settingsLoaded) loadCfSettings();
 });
 
+selectView();
 loadSites();
-loadRanking();
 loadHomeSettings();
 loadUserTz();
-loadAiSettings();
-loadCfSettings();
 </script>
 </body>
 </html>
