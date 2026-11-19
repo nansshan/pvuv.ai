@@ -12,7 +12,7 @@ public.html: 静态展示层；数据库访问由 Worker 负责。
 site.html: 静态展示层；数据库访问由 Worker 负责。
 sites.html: 顶栏切换卡片、排名与设置，登录默认展示卡片。
 sites-board.js: 按域名排列卡片，以浏览量分位和本站历史标记流量。
-sites-board.css: 行底色区分位置，指标文字区分流量与突增。
+sites-board.css: 卡片区与排名表居中留边。行底色区分位置，指标文字区分流量与突增。
 visitor.html: 静态展示层；数据库访问由 Worker 负责。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

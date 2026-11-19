@@ -1,6 +1,6 @@
 /*
  * [INPUT]: sites.html 的页面结构与 sites-board.js 的卡片、序列和排名。
- * [OUTPUT]: 分行底色、流量层级、突增标记与全宽卡片布局。
+ * [OUTPUT]: 分行底色、流量层级、突增标记与居中留边的卡片布局。
  * [POS]: 样式仅作用于站点总览，表单沿用 console.css。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -19,6 +19,7 @@ main.board {
 .board h1 { font-size: clamp(26px, 2.7vw, 44px); margin: 0; }
 .board h1 small { color: var(--mark); font: 500 15px var(--mono); vertical-align: top; letter-spacing: 0; }
 .board .toolbar { flex-wrap: wrap; }
+.scards, #ranking.panel { margin-inline: clamp(10px, 1.5vw, 40px); }
 .scards { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 0; border-top: 1px solid var(--rule); }
 .scard { min-width: 0; padding: 17px clamp(12px,1.25vw,25px) 11px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--band, #18242b); color: var(--ink); }
 .scard:hover, .scard:focus-within { background: color-mix(in srgb,var(--band, #18242b) 92%, white); }
