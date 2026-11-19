@@ -11,8 +11,8 @@ login.html: 静态展示层；数据库访问由 Worker 负责。
 public.html: 静态展示层；数据库访问由 Worker 负责。
 site.html: 静态展示层；数据库访问由 Worker 负责。
 sites.html: 顶栏切换卡片、排名与设置，登录默认展示卡片。
-sites-board.js: 按主域名排列卡片，按需查询单站小时序列。
-sites-board.css: 铺满视口的六列目录、导航和折叠设置布局。
+sites-board.js: 按域名排列卡片，以浏览量分位和本站历史标记流量。
+sites-board.css: 行底色区分位置，指标文字区分流量与突增。
 visitor.html: 静态展示层；数据库访问由 Worker 负责。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

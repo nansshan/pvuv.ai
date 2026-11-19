@@ -1,6 +1,6 @@
 /*
  * [INPUT]: sites.html 的页面结构与 sites-board.js 的卡片、序列和排名。
- * [OUTPUT]: 全宽卡片矩阵、顶栏导航、排名与折叠设置。
+ * [OUTPUT]: 分行底色、流量层级、突增标记与全宽卡片布局。
  * [POS]: 样式仅作用于站点总览，表单沿用 console.css。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -20,8 +20,8 @@ main.board {
 .board h1 small { color: var(--mark); font: 500 15px var(--mono); vertical-align: top; letter-spacing: 0; }
 .board .toolbar { flex-wrap: wrap; }
 .scards { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 0; border-top: 1px solid var(--rule); }
-.scard { min-width: 0; padding: 17px clamp(12px,1.25vw,25px) 11px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: #171b1e; color: var(--ink); }
-.scard:hover, .scard:focus-within { background: #202527; }
+.scard { min-width: 0; padding: 17px clamp(12px,1.25vw,25px) 11px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--band, #18242b); color: var(--ink); }
+.scard:hover, .scard:focus-within { background: color-mix(in srgb,var(--band, #18242b) 92%, white); }
 .site-name, .domain a, #ranking td small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .site-name { font-weight: 650; color: var(--ink); font-size: 15px; }
 .domain { min-height: 18px; font-size: 12px; margin-top: 2px; }
@@ -103,3 +103,18 @@ main.board {
   .workspace-nav a { padding: 7px 12px; }
   .board > .head { padding: 14px; }
 }
+
+/* ---- 行底色标记位置，指标前景色标记流量 ---- */
+.scard[data-band="0"] { --band: #192b36; }
+.scard[data-band="1"] { --band: #292538; }
+.scard[data-band="2"] { --band: #1c302a; }
+.scard[data-band="3"] { --band: #352b23; }
+.scard[data-band="4"] { --band: #222d40; }
+.scard[data-band="5"] { --band: #34252f; }
+.signals { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 9px; min-height: 18px; font-size: 11px; font-weight: 650; }
+.scard[data-volume="High traffic"] { --pv-color: #8de9bc; }
+.scard[data-volume="Low traffic"] { --pv-color: #bdcde6; }
+.scard[data-volume="No traffic"] { --pv-color: #a8afb8; }
+.volume-label, .metrics > :first-child strong { color: var(--pv-color,var(--ink)); }
+.spike { color: #ffb373; }
+.card-controls { margin-top: 10px; }

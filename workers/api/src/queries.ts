@@ -1,4 +1,11 @@
 /**
+ * [INPUT]: 数据库绑定、站点时区与统计周期。
+ * [OUTPUT]: 提供站点汇总、对比时段与统计查询。
+ * [POS]: API 和控制台共享统计口径。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+
+/**
  * Query layer shared by the api worker (token/owner auth) and the console
  * worker (same-origin session auth) — PROJECT_PLAN.md §10, M1 subset (§18.5).
  *
@@ -380,6 +387,9 @@ function hybridSplit(period: Period): { hasPast: boolean; pastStart: string; pas
 // ---------------------------------------------------------------------------
 
 export interface SiteSummary {
+  previous_pv?: number;
+  spike_day?: string;
+  spike_ratio?: number;
   site_id: string;
   pv: number; uv: number; sessions: number;
   clean_count: number; suspect_count: number; bot_count: number; crawler_count: number;
@@ -412,12 +422,41 @@ export async function sitesSummary(
   for (const [tz, ids] of byTz) {
     const period = parsePeriod(periodToken, tz);
     const split = hybridSplit(period);
+    const live = period.subDay ? { startTs: period.startTs, endTs: period.now } : split.today;
+    const compareLive = period.subDay || periodToken === 'today';
 
     for (let i = 0; i < ids.length; i += SUMMARY_CHUNK) {
       const chunk = ids.slice(i, i + SUMMARY_CHUNK);
       const marks = chunk.map(() => '?').join(',');
 
-      if (split.hasPast) {
+      if (compareLive) {
+        // ---- 前一日同长度窗口，仅累计有真实浏览的站点 ----
+        const offset = 86_400_000;
+        const start = period.startTs - offset;
+        const end = period.now - offset;
+        for (const table of await eventTables(db, start, end)) {
+          const rows = await db.prepare(`SELECT site_id, COUNT(*) AS pv FROM ${table}
+            WHERE site_id IN (${marks}) AND event = 'pageview' AND ts >= ? AND ts < ?
+            GROUP BY site_id`).bind(...chunk, start, end).all<{ site_id: string; pv: number }>();
+          for (const row of rows.results) {
+            const summary = out.get(row.site_id)!;
+            summary.previous_pv = (summary.previous_pv ?? 0) + Number(row.pv);
+          }
+        }
+      } else {
+        // ---- 查所选日期内最近一次已检测到的本站浏览量突增 ----
+        const reports = await db.prepare(`SELECT site_id, day, deviation FROM anomaly_reports
+          WHERE site_id IN (${marks}) AND day BETWEEN ? AND ?
+            AND dimension = 'pageviews' AND deviation > 1 ORDER BY day`)
+          .bind(...chunk, period.start, period.end).all<{ site_id: string; day: string; deviation: number }>();
+        for (const report of reports.results) {
+          const summary = out.get(report.site_id)!;
+          summary.spike_day = report.day;
+          summary.spike_ratio = Number(report.deviation);
+        }
+      }
+
+      if (!period.subDay && split.hasPast) {
         uvApprox = true;
         const rows = await db.prepare(`
           SELECT site_id,
@@ -435,9 +474,11 @@ export async function sitesSummary(
         for (const r of rows.results) addSummary(out, r);
       }
 
-      if (split.today) {
-        const { startTs, endTs } = split.today;
-        for (const table of await eventTables(db, startTs, endTs)) {
+      if (live) {
+        const { startTs, endTs } = live;
+        const tables = await eventTables(db, startTs, endTs);
+        if (tables.length > 1) uvApprox = true;
+        for (const table of tables) {
           const rows = await db.prepare(`
             SELECT site_id,
               COALESCE(SUM(event = 'pageview'), 0) AS pv,

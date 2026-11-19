@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 同源站点、汇总、排名与小时序列接口。页面提供翻译与转义函数。
  * [OUTPUT]: loadSites 和 loadRanking 渲染当前时间范围的数据。
- * [POS]: 看板读取单站小时序列。排名视图按需读取跨站数据。
+ * [POS]: 行底色标记位置。浏览量分位与本站历史标记流量。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const boardMetrics = { pv: 'Pageviews', uv: 'Visitors', sessions: 'Sessions' };
@@ -33,6 +33,44 @@ function metricCells(summary, approximate) {
   }).join('');
 }
 
+// ---- 流量层级只比较当前看板中有浏览量的站点 ----
+function trafficBounds(rows) {
+  const values = rows.map(row => Number(row.pv)).filter(pv => pv > 0).sort((a,b) => a-b);
+  const quantile = fraction => values[Math.ceil(values.length * fraction) - 1];
+  return { low: quantile(0.2), high: quantile(0.8), min: values[0], max: values.at(-1) };
+}
+
+function trafficSignals(card, row, bounds) {
+  const pv = Number(row.pv);
+  let level = '';
+  if (pv === 0) level = 'No traffic';
+  else if (pv >= bounds.high && pv > bounds.min) level = 'High traffic';
+  else if (pv <= bounds.low && pv < bounds.max) level = 'Low traffic';
+  card.dataset.volume = level;
+  const previous = Number(row.previous_pv);
+  const liveSpike = previous > 0 && pv >= 2 * previous && pv - previous >= 20;
+  const signals = card.querySelector('.signals');
+  if (level) {
+    const cutoff = level === 'High traffic' ? '≥ ' + fmt(bounds.high) : level === 'Low traffic' ? '≤ ' + fmt(bounds.low) : '= 0';
+    signals.innerHTML = `<span class="volume-label" title="${te('Pageviews')} ${cutoff}">${te(level)}</span>`;
+  }
+  if (liveSpike || row.spike_day) {
+    const ratio = liveSpike ? pv / previous : row.spike_ratio;
+    const detail = liveSpike ? t('Previous day, same window') + ' · ' + fmt(previous) + ' → ' + fmt(pv) : row.spike_day;
+    signals.insertAdjacentHTML('beforeend', `<span class="spike" title="${esc(detail)}">↗ ${te('Traffic spike')} ${Number(ratio).toFixed(1)}×${liveSpike ? '' : ' · ' + esc(row.spike_day)}</span>`);
+  }
+}
+
+// ---- 依据网格实际列数着色，缩放窗口时保留卡片与趋势状态 ----
+function tintRows() {
+  const grid = document.querySelector('.scards');
+  if (!grid) return;
+  const columns = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+  Array.from(grid.children).forEach((card, index) => {
+    card.dataset.band = Math.floor(index / columns) % 6;
+  });
+}
+
 function cardMarkup(s) {
   const host = domainsById.get(s.site_id);
   return `<article class="scard" data-id="${esc(s.site_id)}">
@@ -40,6 +78,7 @@ function cardMarkup(s) {
     <div class="domain">${host ? `<a href="https://${esc(host)}/" target="_blank" rel="noopener noreferrer" title="${esc(host)}">${esc(host)} ↗</a>` : '—'}</div>
     <div class="card-controls"><span class="quality"></span>
       <button type="button" class="trend-toggle" aria-pressed="false" title="${te('Last 24 hours')}" aria-label="${te('Trend')} · ${te('Last 24 hours')}"><span aria-hidden="true">⌁</span> ${te('Trend')} · 24h</button></div>
+    <div class="signals"></div>
     <div class="metrics">${metricCells({}, false)}</div>
     <div class="chart" hidden><select aria-label="${te('Last 24 hours')}">${Object.entries(boardMetrics).map(([key,label]) => `<option value="${key}">${te(label)}</option>`).join('')}</select><div class="plot" aria-live="polite"></div></div>
     <footer><span title="${te('Timezone')}">${esc(s.timezone || 'UTC')}</span><span title="${te('Ad protection mode')}">◇ ${te(s.adguard_mode || 'off')}</span></footer>
@@ -69,13 +108,16 @@ async function loadSites() {
       return;
     }
     el.innerHTML = '<div class="scards">' + sites.map(cardMarkup).join('') + '</div>';
+    tintRows();
     const data = await boardData('/api/sites/summary?period=' + encodeURIComponent(period));
     if (version !== boardVersion) return;
     const summaries = new Map(data.sites.map(row => [row.site_id, row]));
+    const bounds = trafficBounds(data.sites);
     for (const card of el.querySelectorAll('.scard')) {
       const row = summaries.get(card.dataset.id);
       if (!row) continue;
       card.querySelector('.metrics').innerHTML = metricCells(row, data.uv_approx);
+      trafficSignals(card, row, bounds);
       const quality = card.querySelector('.quality');
       quality.textContent = row.pv ? Math.round(100 * (Number(row.clean_count) + Number(row.suspect_count)) / row.pv) + '% ' + t('human') : t('no data yet');
     }
@@ -121,6 +163,7 @@ async function showTrend(card) {
 }
 
 const boardRoot = document.getElementById('sites');
+new ResizeObserver(tintRows).observe(boardRoot);
 boardRoot.addEventListener('click', event => {
   const button = event.target.closest('.trend-toggle');
   if (!button) return;
