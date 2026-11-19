@@ -1,0 +1,46 @@
+/* [INPUT]: 首页语义结构与系统动效偏好。
+ * [OUTPUT]: 响应式版面、标题遮罩与滚动揭示。
+ * [POS]: 仅供公开首页使用。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md */
+*{box-sizing:border-box}
+:root{--paper:#f5f4ed;--ink:#1c251f;--mute:#586358;--rule:#cbd0c4;--orange:#ff7042;--pad:clamp(18px,4.5vw,90px)}
+body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.5 Inter,"Helvetica Neue",Arial,sans-serif}
+header,main,footer{max-width:1920px;margin:auto;padding-inline:var(--pad)}
+header,nav,.brand,.caption,footer{display:flex;align-items:center;justify-content:space-between}
+header{min-height:76px;border-bottom:1px solid var(--rule)}
+a{color:inherit;text-decoration:none}button,select{font:inherit;cursor:pointer;color:inherit}
+button,select,.ink{border:0;background:transparent}
+.brand{gap:10px;font-size:clamp(18px,2vw,26px);font-weight:720;letter-spacing:-.06em}
+.mark{display:inline-block;width:28px;height:25px;background:currentColor;clip-path:polygon(0 75%,30% 5%,50% 47%,70% 0,100% 70%,80% 100%,68% 65%,50% 99%,31% 62%,17% 100%)}
+nav{gap:clamp(8px,2vw,34px);font-size:14px}select{max-width:112px;background:var(--paper);padding:6px}
+.ink{display:inline-block;background:var(--ink);color:white;padding:10px 20px;border-radius:3px;font-weight:600}.ink:hover{background:#374f3e}
+.intro{display:grid;grid-template-columns:1.5fr 1fr;align-items:end;gap:5%;padding:clamp(34px,5vw,90px) 0 clamp(28px,3.5vw,60px)}
+.eyebrow,.caption,.reading>span,footer span{font:12px/1.4 ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
+.eyebrow{margin:0 0 20px;display:flex;align-items:center;gap:9px}
+.eyebrow i,.caption i{display:inline-block;width:8px;height:8px;background:var(--orange)}
+h1{margin:0;font-size:clamp(62px,8.8vw,160px);line-height:.93;letter-spacing:-.07em;font-weight:530}
+h1 span{display:block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.04em}
+h1 b{display:block;font-weight:inherit;animation:rise .86s cubic-bezier(.18,.78,.2,1) both}
+h1 span+span b{color:var(--mute);animation-delay:.12s}
+.lead{max-width:420px;padding-bottom:4px}.lead p{font-size:clamp(18px,1.9vw,30px);letter-spacing:-.035em;line-height:1.32;margin:0 0 22px}
+.lead a{font-size:14px;border-bottom:1px solid;padding-bottom:5px}
+.instrument{position:relative;isolation:isolate;overflow:hidden;background-color:#13261f;background-image:linear-gradient(#9ebda210 1px,transparent 1px),linear-gradient(90deg,#9ebda210 1px,transparent 1px);background-size:52px 52px;color:#e1ebde;height:clamp(330px,33vw,570px);border-radius:4px}
+.caption{position:absolute;inset:20px 24px auto;z-index:1;font-size:11px}.caption i{border-radius:50%;margin-right:6px}
+canvas{position:absolute;width:100%;height:100%;inset:0}
+.reading{position:absolute;top:25%;left:3%;display:grid}.reading strong{font-size:clamp(40px,4.2vw,82px);font-weight:500;line-height:1;letter-spacing:-.07em;font-variant-numeric:tabular-nums}
+.modes{position:absolute;bottom:20px;left:24px;display:flex;background:#14261fec;border:1px solid #677a68;border-radius:3px;padding:3px}
+.modes button{font-size:13px;padding:6px 12px;border-radius:2px}.modes button[aria-pressed=true]{background:#e1ebde;color:var(--ink)}
+#signals{padding:clamp(56px,7vw,120px) 0}
+article{display:grid;grid-template-columns:9% 44% 1fr;align-items:center;gap:2%;border-top:1px solid var(--rule);padding:26px 0}
+article h2{font-weight:500;font-size:clamp(26px,3.4vw,60px);line-height:1.1;letter-spacing:-.055em;margin:0}
+article p{max-width:410px;color:var(--mute);margin:0}.glyph{font:36px monospace;color:#95613e}
+article.enter{animation:appear .7s ease-out both}
+footer{border-top:1px solid var(--rule);padding-block:24px;font-weight:650}
+dialog{background:var(--paper);color:var(--ink);border:0;border-radius:5px;width:min(390px,92vw);padding:32px}
+dialog::backdrop{background:#13261f99;backdrop-filter:blur(5px)}
+dialog form{float:right}dialog form button{font-size:26px}dialog p{color:var(--mute)}.github{text-align:center;width:100%}
+:focus-visible{outline:3px solid #ed8753;outline-offset:3px}
+@keyframes rise{from{transform:translateY(110%)}}
+@keyframes appear{from{opacity:.1;transform:translateY(22px)}}
+@media(max-width:680px){header{min-height:62px}.navlink{display:none}nav{gap:4px}.ink{padding:8px 12px}.intro{grid-template-columns:1fr;gap:24px}.lead p{margin:0 0 14px}.caption{inset:14px 12px auto;font-size:9px}.reading{top:17%}.modes{left:12px;bottom:12px}.modes button{padding:5px 9px}.instrument{height:330px}article{grid-template-columns:30px 1fr;gap:10px}article p{grid-column:2}.glyph{font-size:24px}.brand{gap:5px}.mark{width:23px}select{max-width:84px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}}

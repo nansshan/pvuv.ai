@@ -1,47 +1,35 @@
 <!doctype html>
+<!--
+[INPUT]: 实例品牌设置、首页样式、点云画布与语言偏好。
+[OUTPUT]: 公开流量演示与 GitHub 登录弹框。
+[POS]: 主域名首页。示例与私有统计数据隔离。
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{name}}</title>
-<meta name="description" content="{{description}}">
-<!--
-  Default homepage for a self-hosted pvuv.ai deployment.
-
-  {{name}} / {{description}} are filled in server-side from the instance
-  settings (console → ⚙ Settings → Site & branding). For a fully custom page,
-  create workers/console/public/home.html (gitignored) instead — it replaces
-  this page entirely on deploy. See DEPLOY.md "Customize the homepage".
-
-  Deliberately minimal and generic: thousands of deployments shipping
-  identical rich landing copy would be duplicate content in search engines.
-  The footer carries an optional courtesy "Powered by pvuv.ai" link — MIT
-  imposes no attribution requirement, so keep it to support the project or
-  remove it freely (see README "Attribution (optional)").
--->
-<link rel="stylesheet" href="/console.css">
-<style>
-  body { font-size: 16px; line-height: 1.6; min-height: 100vh; display: grid; grid-template-rows: 1fr auto; }
-  main { display: grid; place-items: center; padding: 40px 16px; margin: 0 auto; }
-  .box { max-width: 480px; text-align: center; }
-  h1 { font-size: 26px; margin: 0 0 10px; }
-  p { color: var(--muted); margin: 0 0 26px; }
-  a.btn.big { padding: 10px 26px; min-height: 42px; font-size: 15px; border-radius: var(--radius); }
-  footer { padding: 18px; text-align: center; font-size: 12.5px; color: var(--muted); border-top: 1px solid #1d222c; }
-  footer a { color: var(--muted); }
-</style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SuperMiniMax · {{name}}</title><meta name="description" content="{{description}}">
+<link rel="stylesheet" href="/landing.css">
+<script defer src="/i18n.js"></script><script defer src="/landing.js"></script><script defer src="/signal.js"></script>
 </head>
 <body>
+<header><a class="brand" href="/"><i class="mark" aria-hidden="true"></i>SuperMiniMax</a>
+<nav><a class="navlink" href="#signals" data-i18n="Overview">Overview</a><select id="lang" data-i18n-title="Language" aria-label="Language"></select>
+<button class="ink" id="login"><span data-copy="login">Sign in</span> ↗</button></nav></header>
 <main>
-  <div class="box">
-    <h1>{{name}}</h1>
-    <p>{{description}}</p>
-    <a class="btn primary big" href="/login.html">Sign in</a>
-  </div>
-</main>
-<footer>
-  Powered by <a href="https://pvuv.ai">pvuv.ai</a> ·
-  <a href="https://github.com/qiayue/pvuv.ai">open source</a>
-</footer>
-</body>
-</html>
+<section class="intro"><div><p class="eyebrow"><i></i> <span data-copy="category">Web analytics</span></p>
+<h1><span><b data-copy="line1">Traffic,</b></span><span><b data-copy="line2">in focus.</b></span></h1></div>
+<div class="lead"><p data-copy="intro">Follow the people, sources and suspicious activity behind each visit.</p><a href="#signals"><span data-copy="explore">Explore the signals</span> ↓</a></div></section>
+<section class="instrument" aria-labelledby="sample">
+<div class="caption"><span><i></i> <span id="sample" data-copy="sample">Traffic sample</span></span><span>00:00 — 24:00 UTC</span></div>
+<canvas aria-hidden="true"></canvas>
+<div class="reading"><span id="metric" data-i18n="Pageviews">Pageviews</span><strong id="value" aria-live="polite">24,816</strong></div>
+<div class="modes"><button aria-pressed="true" data-i18n="Pageviews">Pageviews</button><button aria-pressed="false" data-i18n="Visitors">Visitors</button><button aria-pressed="false" data-i18n="Suspicious">Suspicious</button></div>
+</section>
+<section id="signals"><p class="eyebrow"><i></i> <span data-i18n="Overview">Overview</span></p>
+<article><span class="glyph">↗</span><h2 data-i18n="Sources">Sources</h2><p data-copy="source">Trace visits back to search, campaigns and referring sites.</p></article>
+<article><span class="glyph">⌁</span><h2 data-i18n="Visitor journeys">Visitor journeys</h2><p data-copy="journey">Follow entry pages, session paths and exits in order.</p></article>
+<article><span class="glyph">≋</span><h2 data-i18n="Traffic quality">Traffic quality</h2><p data-copy="quality">Inspect bot scores and see which visits were flagged.</p></article></section>
+</main><footer>SuperMiniMax <span>superminimax.com</span></footer>
+<dialog aria-labelledby="dialog-title"><form method="dialog"><button aria-label="Close" id="close">×</button></form><i class="mark"></i><h2 id="dialog-title" data-copy="login">Sign in</h2><p data-i18n="self-hosted analytics · sign in">self-hosted analytics · sign in</p><p id="error" role="alert" hidden></p><a class="ink github" href="/api/auth/github/start"><span data-i18n="Continue with GitHub">Continue with GitHub</span> ↗</a></dialog>
+</body></html>

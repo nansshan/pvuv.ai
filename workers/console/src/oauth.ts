@@ -1,4 +1,10 @@
 /**
+ * [INPUT]: GitHub OAuth 凭证与签名状态。
+ * [OUTPUT]: 唯一公开登录提供方与已验证身份。
+ * [POS]: 控制台认证边界。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+/**
  * Google / GitHub OAuth login for the console (authorization-code flow).
  *
  * A provider is only offered when both its client id (var) and client secret
@@ -48,7 +54,7 @@ const PROVIDERS = {
 } as const;
 
 export function isProvider(p: string): p is Provider {
-  return p === 'google' || p === 'github';
+  return p === 'github';
 }
 
 function clientId(env: OAuthEnv, p: Provider): string | undefined {
@@ -60,7 +66,7 @@ function clientSecret(env: OAuthEnv, p: Provider): string | undefined {
 
 /** Which providers are fully configured (both id + secret). */
 export function configuredProviders(env: OAuthEnv): Provider[] {
-  return (['google', 'github'] as Provider[]).filter((p) => clientId(env, p) && clientSecret(env, p));
+  return (['github'] as Provider[]).filter((p) => clientId(env, p) && clientSecret(env, p));
 }
 
 function redirectUri(origin: string, p: Provider): string {

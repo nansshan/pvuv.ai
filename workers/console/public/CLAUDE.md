@@ -6,8 +6,11 @@
 console.css: 静态视图的共同视觉层。
 health.html: 静态展示层；数据库访问由 Worker 负责。
 i18n.js: 只改变展示文本，不改变统计语义。
-index.html: 静态展示层；数据库访问由 Worker 负责。
-login.html: 静态展示层；数据库访问由 Worker 负责。
+index.html: 公开首页承载流量演示与 GitHub 登录弹框。
+landing.css: 首页版式、标题遮罩与滚动揭示。
+landing.js: 复用控制台语言偏好，展示登录与回调错误。
+signal.js: 绘制三个示例指标，切换指标时重扫点云。
+login.html: 旧登录入口回到首页，保留授权错误。
 public.html: 静态展示层；数据库访问由 Worker 负责。
 site.html: 静态展示层；数据库访问由 Worker 负责。
 sites.html: 顶栏切换卡片、排名与设置，登录默认展示卡片。
